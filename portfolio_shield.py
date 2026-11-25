@@ -28,7 +28,7 @@ import zlib
 from collections import Counter
 from pathlib import Path
 
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 ENV_CONFIG = "PORTFOLIO_SHIELD_IDENTIFIERS"
 DEFAULT_CONFIGS = (Path.home() / ".portfolio-shield" / "private-identifiers.json",
                    Path(__file__).resolve().parent / "private-identifiers.json")
@@ -526,10 +526,12 @@ def install_hooks(repo: Path, identifiers: Path, extra: list[str], all_remotes: 
     options += " --all-remotes" if all_remotes else ""
     written = []
     for name in HOOKS:
+        # git's own arguments come straight after the hook name: Python 3.10's argparse cannot take
+        # positionals that follow options.
         script = ("#!/bin/sh\n"
                   "# Installed by portfolio-shield. Do not bypass with --no-verify.\n"
-                  f'exec {python or _python_command()} {shlex.quote(me)} hook {name} {options} '
-                  f'--repo "$(git rev-parse --show-toplevel)" "$@"\n')
+                  f'exec {python or _python_command()} {shlex.quote(me)} hook {name} "$@" {options} '
+                  f'--repo "$(git rev-parse --show-toplevel)"\n')
         target = hooks / name
         target.write_text(script, encoding="utf-8", newline="\n")
         target.chmod(0o755)

@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import json
 import os
+import shlex
 import shutil
 import struct
 import subprocess
@@ -40,6 +41,8 @@ ASSIGN = "api_key" + ' = "' + "Zq8wPl3mN0vR7tY2" + '"'
 BAD_MAIL = "someone" + "@" + "privatemail.net"
 ENTROPY = "aZ3" + "kP9qL2xW7vB4nM8rT1yU6sD5fG0hJcE" + "Qo"
 DENY = "zorblax"
+# The hooks must run under the interpreter running these tests, so every supported version is really tested.
+PY = shlex.quote(Path(sys.executable).as_posix())
 
 
 def config(tmp: Path, **extra) -> Path:
@@ -275,7 +278,7 @@ class GitHistory(RepoMixin, Base):
 class Hooks(RepoMixin, Base):
     def install(self, repo):
         cfg_path = config(self.tmp)
-        self.assertEqual(ps.main(["install-hook", str(repo), "--identifiers", str(cfg_path)]), 0)
+        self.assertEqual(ps.main(["install-hook", str(repo), "--identifiers", str(cfg_path), "--python", PY]), 0)
         for name in ("pre-commit", "commit-msg", "pre-push"):
             self.assertTrue((repo / ".git" / "hooks" / name).is_file(), name)
         return cfg_path
@@ -298,7 +301,8 @@ class Hooks(RepoMixin, Base):
         repo = self.make_repo()
         cfg_path = config(self.tmp)
         planted = "x$(touch PLANTED)`touch PLANTED2`y"
-        self.assertEqual(ps.main(["install-hook", str(repo), "--identifiers", str(cfg_path), "--deny", planted]), 0)
+        self.assertEqual(ps.main(["install-hook", str(repo), "--identifiers", str(cfg_path), "--deny", planted,
+                                  "--python", PY]), 0)
         (repo / "a.txt").write_text("fine\n", encoding="utf-8")
         git(repo, "add", "a.txt")
         git(repo, "commit", "-q", "-m", "add", env=ident_env(), check=False)
