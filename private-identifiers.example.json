@@ -1,0 +1,7 @@
+{
+  "deny": ["my-username", "=MyLaptop", "internal.example", ":7000"],
+  "denylist_files": [],
+  "cidrs": ["198.51.100.0/24"],
+  "allowed_emails": ["<your public contact address>"],
+  "approved_identities": ["Your Name <your GitHub no-reply address>"]
+}

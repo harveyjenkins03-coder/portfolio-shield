@@ -1,0 +1,4 @@
+private-identifiers.json
+__pycache__/
+.pytest_cache/
+*.pyc
